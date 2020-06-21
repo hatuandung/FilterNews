@@ -1,17 +1,21 @@
-package com.example.ex7t3hhomework;
+package com.example.ex7t3hhomework.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.ex7t3hhomework.R;
 import com.example.ex7t3hhomework.adapter.NewsAdapter;
 import com.example.ex7t3hhomework.adapter.NewsPagerAdapter;
 import com.example.ex7t3hhomework.api.ApiBuilder;
@@ -29,14 +33,30 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements Callback<NewsResponse>, SearchView.OnQueryTextListener, ViewPager.OnPageChangeListener {
-
+    private Dialog dialog;
     private ViewPager pager;
     private TabLayout tab;
     private NewsPagerAdapter adpter;
     private NewsFragment newsFragment = new NewsFragment();
     private FavoriteFragment favoriteFragment = new FavoriteFragment();
     private SavedFragment savedFragment = new SavedFragment();
-    //private TextView txtNoData;
+
+    public ViewPager getPager() {
+        return pager;
+    }
+
+    public NewsFragment getNewsFragment() {
+        return newsFragment;
+    }
+
+    public FavoriteFragment getFavoriteFragment() {
+        return favoriteFragment;
+    }
+
+    public SavedFragment getSavedFragment() {
+        return savedFragment;
+    }
+//private TextView txtNoData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +77,9 @@ public class MainActivity extends AppCompatActivity implements Callback<NewsResp
         pager.setAdapter(adpter);
         pager.addOnPageChangeListener(this);
 
-
+        dialog = new Dialog(this,android.R.style.Theme_DeviceDefault_Dialog_NoActionBar_MinWidth);
+        dialog.setContentView(R.layout.dialog_progress_loading);
+        dialog.setCancelable(false);
     }
 
 
@@ -71,10 +93,31 @@ public class MainActivity extends AppCompatActivity implements Callback<NewsResp
 
     @Override
     public void onResponse(Call<NewsResponse> call, Response<NewsResponse> response) {
+        dialog.dismiss();
         NewsResponse newsResponse = response.body();
         ArrayList<News> data = newsResponse.getArrNews();
 
         newsFragment.setData(data);
+        //newsFragment.setText(data);
+
+
+//        final ProgressDialog progressDialog = ProgressDialog.show(this, "", "Please wait...");
+//        new Thread() {
+//            public void run() {
+//                try{
+//                    //your code here.....
+//
+//                    ArrayList<News> data = newsResponse.getArrNews();
+//
+//                    newsFragment.setData(data);
+//                }
+//                catch (Exception e) {
+//                    Log.e("tag", e.getMessage());
+//                }
+//                // dismiss the progress dialog
+//                progressDialog.dismiss();
+//            }
+//        }.start();
     }
 
     @Override
@@ -84,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements Callback<NewsResp
 
     @Override
     public boolean onQueryTextSubmit(String query) {
-
+        dialog.show();
         pager.setCurrentItem(0);
         ApiBuilder.getInstance().getNews(query, "e09adc94a8c84d32bac60c934df8169c").enqueue(this);
 

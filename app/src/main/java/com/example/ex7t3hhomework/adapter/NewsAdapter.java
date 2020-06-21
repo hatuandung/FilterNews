@@ -15,9 +15,10 @@ import com.example.ex7t3hhomework.model.News;
 
 import java.util.ArrayList;
 
-public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsHolder>  {
+public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsHolder> {
 
     private ArrayList<News> arrNews;
+    private NewsListener listener;
     private LayoutInflater inflater;
 
     public NewsAdapter(LayoutInflater inflater) {
@@ -33,17 +34,31 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsHolder>  {
         notifyDataSetChanged();
     }
 
+    public void setListener(NewsListener listener) {
+        this.listener = listener;
+    }
+
     @NonNull
     @Override
     public NewsHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
-        View v = inflater.inflate(R.layout.item,parent,false);
+        View v = inflater.inflate(R.layout.item, parent, false);
         return new NewsHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull NewsHolder holder, int position) {
+    public void onBindViewHolder(@NonNull NewsHolder holder, final int position) {
         holder.bindView(arrNews.get(position));
+
+        News news = arrNews.get(position);
+        if (listener != null){
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onItemNewsClicked(position);
+                }
+            });
+        }
     }
 
     @Override
@@ -52,12 +67,11 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsHolder>  {
     }
 
 
-    public class NewsHolder extends RecyclerView.ViewHolder{
+    public class NewsHolder extends RecyclerView.ViewHolder {
         ImageView imgNews;
         TextView txtTitle;
         TextView txtPubDate;
         TextView getTxtDesc;
-
 
 
         public NewsHolder(@NonNull View itemView) {
@@ -68,15 +82,28 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsHolder>  {
             getTxtDesc = itemView.findViewById(R.id.txt_desc);
 
 
+
+
         }
 
-        public void bindView(News item){
+        public void bindView(News item) {
             txtTitle.setText(item.getTitle());
             txtPubDate.setText(item.getPubDate());
             getTxtDesc.setText(item.getDesc());
 
             String imgUrl = item.getImage();
             Glide.with(imgNews).load(imgUrl).centerCrop().into(imgNews);
+
+            String url = item.getUrl();
         }
+
+
+    }
+
+
+    public interface NewsListener {
+        void onItemNewsClicked(int posititon);
+
+        //void onItemNewsLongClicked();
     }
 }
