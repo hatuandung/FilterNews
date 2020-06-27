@@ -8,43 +8,55 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.ex7t3hhomework.R;
 import com.example.ex7t3hhomework.activity.WebViewActivity;
 import com.example.ex7t3hhomework.adapter.NewsAdapter;
+import com.example.ex7t3hhomework.dao.AppDatabase;
 import com.example.ex7t3hhomework.model.News;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class NewsFragment extends Fragment implements NewsAdapter.NewsListener{
+public class NewsFragment extends BaseFragment implements NewsAdapter.NewsListener{
     TextView txtNoData;
     private RecyclerView lvNews;
     private NewsAdapter adapter;
     private ArrayList<News> data = new ArrayList<>();
 
 
-
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_news, container, false);
-        lvNews = view.findViewById(R.id.lv_news);
-        txtNoData = view.findViewById(R.id.txt_nodata);
-        adapter = new NewsAdapter(getLayoutInflater());
-        //txtNoData.setVisibility(View.INVISIBLE);
-        adapter.setArrNews(data);
-        adapter.setListener(this);
-        lvNews.setAdapter(adapter);
-
-        return view;
+    protected int getLayoutResource() {
+        return R.layout.fragment_news;
     }
 
-    public void setData(List<News> data) { 
+    @Override
+    public String getTitle() {
+        return "NEWS";
+    }
+
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        lvNews = findViewByID(R.id.lv_news);
+        txtNoData = findViewByID(R.id.txt_nodata);
+
+        adapter = new NewsAdapter(getLayoutInflater());
+        lvNews.setAdapter(adapter);
+        adapter.setArrNews(data);
+
+        adapter.setListener(this);
+    }
+
+    public void setData(List<News> data) {
         this.data.clear();
         this.data.addAll(data);
         if (adapter != null) {
@@ -57,13 +69,18 @@ public class NewsFragment extends Fragment implements NewsAdapter.NewsListener{
     @Override
     public void onItemNewsClicked(int posititon) {
         Intent intent = WebViewActivity.getInstance(getContext(), data.get(posititon).getUrl());
+        Log.e( "Click: ", data.get(posititon).getUrl());
         startActivity(intent);
     }
 
+    @Override
+    public void onItemNewsLongClicked(int position) {
+        try {
+            AppDatabase.getInstance(getContext()).getNewsDao().insert(data.get(position));
+        } catch (Exception ex){
+            Toast.makeText(getContext(), "success", Toast.LENGTH_SHORT).show();
+        }
 
-//    public void setText(List<News> data) {
-//        if (data.isEmpty())
-//            txtNoData.setVisibility(View.INVISIBLE);
-//        else txtNoData.setVisibility(View.VISIBLE);
-//    }
+    }
+
 }
