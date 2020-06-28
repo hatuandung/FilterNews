@@ -39,9 +39,10 @@ public class MainActivity extends AppCompatActivity implements Callback<NewsResp
     private ViewPager pager;
     private TabLayout tab;
     private NewsPagerAdapter adpter;
+
     private NewsFragment newsFragment = new NewsFragment();
-    private FavoriteFragment favoriteFragment = new FavoriteFragment();
     private SavedFragment savedFragment = new SavedFragment();
+    private FavoriteFragment favoriteFragment = new FavoriteFragment();
 
     public ViewPager getPager() {
         return pager;
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements Callback<NewsResp
         pager = findViewById(R.id.pager);
         tab = findViewById(R.id.tab);
         tab.setupWithViewPager(pager);
-        adpter = new NewsPagerAdapter(getSupportFragmentManager(), newsFragment, favoriteFragment, savedFragment);
+        adpter = new NewsPagerAdapter(getSupportFragmentManager(), newsFragment, savedFragment, favoriteFragment);
         pager.setAdapter(adpter);
         //ager.addOnPageChangeListener(this);
 
@@ -98,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements Callback<NewsResp
         dialog.dismiss();
         NewsResponse newsResponse = response.body();
         data = newsResponse.getArrNews();
+
 
         newsFragment.setData(data);
 

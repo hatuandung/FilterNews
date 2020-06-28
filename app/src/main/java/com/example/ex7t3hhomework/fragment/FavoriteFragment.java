@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -53,7 +54,8 @@ public class FavoriteFragment extends BaseFragment implements FavoriteAdapter.Fa
 
     public void getData(){
         data.clear();
-        data.addAll(AppDatabase.getInstance(getContext()).getNewsDao().getAll());
+        //data.addAll(AppDatabase.getInstance(getContext()).getNewsDao().getAll());
+        data.addAll(AppDatabase.getInstance(getContext()).getNewsDao().getFavorite());
         if (adapter != null){
             adapter.setArrNews(data);
         }
@@ -79,9 +81,12 @@ public class FavoriteFragment extends BaseFragment implements FavoriteAdapter.Fa
                 .setPositiveButton("Xóa", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
-                        AppDatabase.getInstance(getContext()).getNewsDao().delete(data.get(position));
+                        News news = data.get(position);
+                        news.setFavorite(0);
+                        //AppDatabase.getInstance(getContext()).getNewsDao().delete(data.get(position));
+                        AppDatabase.getInstance(getContext()).getNewsDao().update(news);
                         getData();
+                        Toast.makeText(getContext(), "Đã xóa", Toast.LENGTH_SHORT).show();
                     }
                 }).create();
         dialog.setCancelable(false);

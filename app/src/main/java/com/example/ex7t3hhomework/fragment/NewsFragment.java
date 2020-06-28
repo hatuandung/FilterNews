@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ex7t3hhomework.R;
+import com.example.ex7t3hhomework.activity.MainActivity;
 import com.example.ex7t3hhomework.activity.WebViewActivity;
 import com.example.ex7t3hhomework.adapter.NewsAdapter;
 import com.example.ex7t3hhomework.dao.AppDatabase;
@@ -77,8 +78,11 @@ public class NewsFragment extends BaseFragment implements NewsAdapter.NewsListen
     public void onItemNewsLongClicked(int position) {
         try {
             AppDatabase.getInstance(getContext()).getNewsDao().insert(data.get(position));
+            MainActivity act = (MainActivity) getActivity();
+            act.getSavedFragment().getData();
+            Toast.makeText(getContext(), "Đã thêm", Toast.LENGTH_SHORT).show();
         } catch (Exception ex){
-            Toast.makeText(getContext(), "success", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Đã tồn tại", Toast.LENGTH_SHORT).show();
         }
 
     }
