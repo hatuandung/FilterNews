@@ -1,9 +1,14 @@
 package com.example.ex7t3hhomework.fragment;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,14 +25,20 @@ import com.example.ex7t3hhomework.activity.WebViewActivity;
 import com.example.ex7t3hhomework.adapter.BaseAdapter;
 import com.example.ex7t3hhomework.adapter.SavedAdapter;
 import com.example.ex7t3hhomework.dao.AppDatabase;
+import com.example.ex7t3hhomework.file.FileManager;
 import com.example.ex7t3hhomework.model.News;
 
+import java.io.File;
 import java.util.ArrayList;
+
+import static androidx.core.content.ContextCompat.getSystemService;
 
 public class SavedFragment extends BaseFragment implements SavedAdapter.SavedListener {
     private ArrayList<News> data = new ArrayList<>();
     private RecyclerView rvSaved;
     private SavedAdapter adapter;
+    FileManager fileManager;
+    File[] files;
 
 
     @Override
@@ -42,7 +53,7 @@ public class SavedFragment extends BaseFragment implements SavedAdapter.SavedLis
         getData();
     }
 
-    public void getData(){
+    public void getData() {
         data.clear();
         data.addAll(AppDatabase.getInstance(getContext()).getNewsDao().getAll());
         if (adapter != null) {
@@ -52,8 +63,23 @@ public class SavedFragment extends BaseFragment implements SavedAdapter.SavedLis
 
     @Override
     public void onItemSavedClicked(int position) {
-        Intent intent = WebViewActivity.getInstance(getContext(), data.get(position).getUrl());
-        startActivity(intent);
+        if (isOnline()) {
+            Intent intent = WebViewActivity.getInstance(getContext(), data.get(position).getUrl());
+            startActivity(intent);
+        } else {
+            fileManager = new FileManager();
+            String fileName = data.get(position).getUrl().replaceAll("[-_./:?=]", "");
+            String path = "file:///" + fileManager.getRootPath() + "/FilterNews/" + fileName + ".html";
+            Intent intent = WebViewActivity.getInstance(getContext(), path);
+            startActivity(intent);
+            Log.e("onItemSavedClicked: ", fileName);
+        }
+    }
+
+    public boolean isOnline() {
+        ConnectivityManager connMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        return (networkInfo != null && networkInfo.isConnected());
     }
 
     @Override
@@ -69,11 +95,14 @@ public class SavedFragment extends BaseFragment implements SavedAdapter.SavedLis
                 .setPositiveButton("Xóa", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        fileManager = new FileManager();
+                        String fileName = data.get(position).getUrl().replaceAll("[-_./:?=]", "");
+                        String path = fileManager.getRootPath() + "/FilterNews/" + fileName + ".html";
+                        fileManager.deleteFile(path);
 
                         AppDatabase.getInstance(getContext()).getNewsDao().delete(data.get(position));
-
                         getData();
-                        MainActivity act = (MainActivity)getActivity();
+                        MainActivity act = (MainActivity) getActivity();
                         act.getFavoriteFragment().getData();
                         Toast.makeText(getContext(), "Đã xóa", Toast.LENGTH_SHORT).show();
                     }
@@ -94,7 +123,7 @@ public class SavedFragment extends BaseFragment implements SavedAdapter.SavedLis
             MainActivity act = (MainActivity) getActivity();
             act.getFavoriteFragment().getData();
             Toast.makeText(getContext(), "Đã thêm", Toast.LENGTH_SHORT).show();
-        }catch (Exception ex){
+        } catch (Exception ex) {
             Toast.makeText(getContext(), "Đã tồn tại", Toast.LENGTH_SHORT).show();
         }
 

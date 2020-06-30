@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements Callback<NewsResp
         pager.setAdapter(adpter);
         //ager.addOnPageChangeListener(this);
 
-        dialog = new Dialog(this, android.R.style.Theme_DeviceDefault_Dialog_NoActionBar_MinWidth);
+        dialog = new Dialog(this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar_MinWidth);
         dialog.setContentView(R.layout.dialog_progress_loading);
         dialog.setCancelable(false);
     }

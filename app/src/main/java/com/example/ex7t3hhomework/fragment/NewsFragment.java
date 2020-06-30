@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,8 +21,12 @@ import com.example.ex7t3hhomework.activity.MainActivity;
 import com.example.ex7t3hhomework.activity.WebViewActivity;
 import com.example.ex7t3hhomework.adapter.NewsAdapter;
 import com.example.ex7t3hhomework.dao.AppDatabase;
+import com.example.ex7t3hhomework.file.DownloadAsync;
+import com.example.ex7t3hhomework.file.FileManager;
 import com.example.ex7t3hhomework.model.News;
+import com.example.ex7t3hhomework.utils.PermissionUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +35,15 @@ public class NewsFragment extends BaseFragment implements NewsAdapter.NewsListen
     private RecyclerView lvNews;
     private NewsAdapter adapter;
     private ArrayList<News> data = new ArrayList<>();
+    private int idUrl;
+
+    FileManager fileManager;
+    private String[] PERMISSIONS = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
+    private  File[] files;
 
 
     @Override
@@ -76,10 +90,12 @@ public class NewsFragment extends BaseFragment implements NewsAdapter.NewsListen
 
     @Override
     public void onItemNewsLongClicked(int position) {
+        idUrl = position;
         try {
             AppDatabase.getInstance(getContext()).getNewsDao().insert(data.get(position));
             MainActivity act = (MainActivity) getActivity();
             act.getSavedFragment().getData();
+            download(position);
             Toast.makeText(getContext(), "Đã thêm", Toast.LENGTH_SHORT).show();
         } catch (Exception ex){
             Toast.makeText(getContext(), "Đã tồn tại", Toast.LENGTH_SHORT).show();
@@ -87,4 +103,25 @@ public class NewsFragment extends BaseFragment implements NewsAdapter.NewsListen
 
     }
 
+    public void download (int position){
+        if (PermissionUtils.checkPermissions(getContext(), PERMISSIONS)){
+            fileManager = new FileManager();
+            files = fileManager.getFile(fileManager.getRootPath());
+            Log.e("download: ", String.valueOf(files));
+            String link = data.get(position).getUrl();
+            new DownloadAsync(getContext()).execute(link);
+        }else {
+            PermissionUtils.requestPermissons(getActivity(),PERMISSIONS,0);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (PermissionUtils.checkPermissions(getContext(), permissions)) {
+            download(idUrl);
+        } else {
+            PermissionUtils.requestPermissons(getActivity(), PERMISSIONS, 0);
+        }
+    }
 }

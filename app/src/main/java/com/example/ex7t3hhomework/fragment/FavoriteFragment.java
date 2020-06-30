@@ -1,8 +1,11 @@
 package com.example.ex7t3hhomework.fragment;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,6 +22,7 @@ import com.example.ex7t3hhomework.R;
 import com.example.ex7t3hhomework.activity.WebViewActivity;
 import com.example.ex7t3hhomework.adapter.FavoriteAdapter;
 import com.example.ex7t3hhomework.dao.AppDatabase;
+import com.example.ex7t3hhomework.file.FileManager;
 import com.example.ex7t3hhomework.model.News;
 
 import java.util.ArrayList;
@@ -28,6 +32,7 @@ public class FavoriteFragment extends BaseFragment implements FavoriteAdapter.Fa
     private ArrayList<News> data = new ArrayList<>();
     private RecyclerView rvFavorite;
     private FavoriteAdapter adapter;
+    FileManager fileManager;
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -52,20 +57,29 @@ public class FavoriteFragment extends BaseFragment implements FavoriteAdapter.Fa
         return "FAVORITE";
     }
 
-    public void getData(){
+    public void getData() {
         data.clear();
         //data.addAll(AppDatabase.getInstance(getContext()).getNewsDao().getAll());
         data.addAll(AppDatabase.getInstance(getContext()).getNewsDao().getFavorite());
-        if (adapter != null){
+        if (adapter != null) {
             adapter.setArrNews(data);
         }
     }
 
     @Override
     public void onItemFavoriteClicked(int position) {
+        if (isOnline()) {
         Intent intent = WebViewActivity.getInstance(getContext(), data.get(position).getUrl());
         Log.e( "Click: ", data.get(position).getUrl());
         startActivity(intent);
+        } else {
+            fileManager = new FileManager();
+            String fileName = data.get(position).getUrl().replaceAll("[-_./:?=]", "");
+            String path = "file:///" + fileManager.getRootPath() + "/FilterNews/" + fileName + ".html";
+            Intent intent = WebViewActivity.getInstance(getContext(), path);
+            startActivity(intent);
+            Log.e("onItemFavoriteClicked: ", fileName);
+        }
     }
 
     @Override
@@ -93,5 +107,11 @@ public class FavoriteFragment extends BaseFragment implements FavoriteAdapter.Fa
         dialog.show();
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setAllCaps(false);
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setAllCaps(false);
+    }
+
+    public boolean isOnline() {
+        ConnectivityManager connMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        return (networkInfo != null && networkInfo.isConnected());
     }
 }

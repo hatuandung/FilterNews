@@ -7,6 +7,9 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -31,9 +34,15 @@ public class WebViewActivity extends AppCompatActivity {
         dialog.setContentView(R.layout.dialog_progress_loading);
         dialog.setCancelable(false);
         dialog.show();
-
         WebView webView = findViewById(R.id.wv_news);
-        webView.loadUrl(url);
+
+//        WebSettings webSetting = webView.getSettings();
+//        webSetting.setJavaScriptEnabled(true);
+//        webSetting.setDomStorageEnabled(true);
+
+        //webView.loadUrl(url);
+        webView.loadUrl( url);
+        Log.e( "initViews: ", url );
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
